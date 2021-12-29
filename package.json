@@ -1,0 +1,53 @@
+{
+  "name": "cpp-project-manager",
+	"displayName": "Cpp-Project-Manager",
+	"description": "",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.62.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:cpp-project-manager.NewProject",
+		"onCommand:cpp-project-manager.NewClass",
+		"onView:nodeDependencies"
+	],
+	"main": "./src/extension.js",
+	"contributes": {
+		"viewsWelcome": [
+			{
+			  "view": "explorer",
+			  "contents": "Create a new C++ Project.\n[Create C++ Project](command:cpp-project-manager.NewProject)"
+			}
+		],
+		"commands": [
+			{
+				"command": "cpp-project-manager.NewProject",
+				"title": "C++: New Project"
+			},
+			{
+				"command": "cpp-project-manager.NewClass",
+				"title": "C++: New C++ Class"
+			}
+		]
+	},
+	"scripts": {
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"test": "node ./test/runTest.js"
+	},
+	"devDependencies": {
+        "@types/vscode": "^1.62.0",
+        "@types/glob": "^7.1.4",
+        "@types/mocha": "^9.0.0",
+        "@types/node": "14.x",
+        "eslint": "^8.1.0",
+        "glob": "^7.1.7",
+        "mocha": "^9.1.3",
+        "typescript": "^4.4.4",
+        "@vscode/test-electron": "^1.6.2"
+    }
+
+}
