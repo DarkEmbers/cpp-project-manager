@@ -26,6 +26,28 @@ function deactivate()
 
 async function NewProject()
 {
+	// Folder picker options
+	const OpenDialogOptions = 
+	{
+		canSelectMany: false,
+		openLabel: "Select Folder",
+		canSelectFiles: false,
+		canSelectFolders: true
+	}
+
+	// Get the full path of new class
+	// Use folder picker
+	var DirPath;
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => 
+	{
+		if (fileUri === undefined) { return; }
+		DirPath = fileUri[0].fsPath;
+
+	})
+
+	// Cancel if no folder is selected
+	if (DirPath === undefined) { return; }
+
 	// Take input
 	var ProjectName = await vscode.window.showInputBox(
 	{
@@ -39,26 +61,24 @@ async function NewProject()
 		vscode.window.showErrorMessage('Cannot leave empty');
 	} 
 	  
-	if(ProjectName !== undefined)
+	if(ProjectName === undefined) { return; }
+	
+	// Create command
+	var CurrentDir = __dirname;
+	var Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && NewCppProject \"" + ProjectName + "\" " + DirPath.replace(" ", "\\ ");
+
+	// Exec command
+	exec(Cmd,
+	function (error, stdout, stderr)
 	{
-		// Create command
-		var CurrentDir = __dirname;
-		var Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && NewCppProject \"" + ProjectName + "\""
-
-		// Exec command
-		exec(Cmd,
-		function (error, stdout, stderr)
+		if (stdout === "Failed\n")
 		{
-			if (stdout === "Failed\n")
-			{
-				vscode.window.showErrorMessage('Project with same name already exists');
-				return;
-			}
+			vscode.window.showErrorMessage('Project with same name already exists');
+			return;
+		}
 
-			vscode.window.showInformationMessage('C++ project created');
-		});
-
-	}
+		vscode.window.showInformationMessage('C++ project created');
+	});
 
 }
 

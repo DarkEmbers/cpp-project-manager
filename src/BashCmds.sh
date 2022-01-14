@@ -3,7 +3,7 @@
 function NewCppProject()
 {
     cd /
-    cd /Users/hariharthachapully/Desktop/C++\ Projects/
+    cd "$2"
     if mkdir $1; then
         
         mkdir $1
@@ -138,6 +138,8 @@ $4
 add_executable(\${PROJECT_NAME} \${SRC_FILES})
 
 target_include_directories(\${PROJECT_NAME} PRIVATE \${INC_DIRS})" >> CMakeLists.txt
+
+    cmake ./
 
 }
 
