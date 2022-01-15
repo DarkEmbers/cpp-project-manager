@@ -24,9 +24,9 @@ New Class
 
 ![Create a new C++ Class](/images/InstallCode.png)
 
-## LISCENCE
+## LICENSE
 
-This extension follows the [MIT](https://github.com/DarkEmbers/cpp-project-manager/blob/master/LICENSE) licence
+This extension follows the [MIT](https://github.com/DarkEmbers/cpp-project-manager/blob/master/LICENSE) license
 
 ## Known Issues
 
