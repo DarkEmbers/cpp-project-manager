@@ -16,6 +16,9 @@
 	"bugs": {
 		"url": "https://github.com/DarkEmbers/cpp-project-manager/issues"
 	},
+	"icon": "images/Icon.png",
+	"license": "SEE LICENSE IN LICENCE",
+	"os": [""],
 	"engines": {
 		"vscode": "^1.62.0"
 	},

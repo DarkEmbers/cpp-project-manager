@@ -8,7 +8,7 @@ New Project
 
 ![Create a new C++ Project](/images/NewProject.png)
 ![Create a new C++ Class](/images/ProjectStructure.png)
-
+v
 New Class
 
 ![Create a new C++ Class](/images/NewClass.png)
@@ -17,10 +17,16 @@ New Class
 
 - CMake
 - 'code' added to PATH
+- vscode 1.62.0+
+- Make sure to open a vscode workspace for the extension to work properly
 
 >Code can be added to path by opening the command pallette (Cmd + Shift + P) and typing "Shell Command: Install 'code' command to PATH"
 
 ![Create a new C++ Class](/images/InstallCode.png)
+
+## LISCENCE
+
+This extension follows the [MIT](https://github.com/DarkEmbers/cpp-project-manager/blob/master/LICENSE) licence
 
 ## Known Issues
 
