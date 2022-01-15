@@ -33,7 +33,7 @@ async function NewProject()
 		openLabel: "Select Folder",
 		canSelectFiles: false,
 		canSelectFolders: true
-	}
+	};
 
 	// Get the full path of new class
 	// Use folder picker
@@ -43,7 +43,7 @@ async function NewProject()
 		if (fileUri === undefined) { return; }
 		DirPath = fileUri[0].fsPath;
 
-	})
+	});
 
 	// Cancel if no folder is selected
 	if (DirPath === undefined) { return; }
@@ -54,18 +54,15 @@ async function NewProject()
 		placeHolder: "Project Name",
 		prompt: "Your new project name",
 		value: "MyProject"
-	})
+	});
 	
 	if(ProjectName === '')
-	{
 		vscode.window.showErrorMessage('Cannot leave empty');
-	} 
 	  
 	if(ProjectName === undefined) { return; }
 	
 	// Create command
-	var CurrentDir = __dirname;
-	var Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && NewCppProject \"" + ProjectName + "\" " + DirPath.replace(" ", "\\ ");
+	var Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; source BashCmds.sh && NewCppProject \"" + ProjectName + "\" " + DirPath.replace(" ", "\\ ");
 
 	// Exec command
 	exec(Cmd,
@@ -85,8 +82,13 @@ async function NewProject()
 async function NewClass()
 {
 	// Get full path to root folder of project
-	var WsFolderPath;
-	vscode.workspace.workspaceFolders.find((WsFolder) => { WsFolderPath = WsFolder.uri.fsPath; })
+	
+	var WsFolderPath = vscode.workspace.workspaceFolders[0].uri.path;
+	if (WsFolderPath === undefined)
+	{
+		vscode.window.showErrorMessage('No Vscode Workspace is currently open');
+		return;
+	}
 
 	var ProjectName = ""
 	for(var i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++) { ProjectName += WsFolderPath[i]; }
@@ -99,7 +101,7 @@ async function NewClass()
 		openLabel: "Select Folder",
 		canSelectFiles: false,
 		canSelectFolders: true
-	}
+	};
 
 	// Get the full path of new class
 	// Use folder picker
@@ -119,7 +121,8 @@ async function NewClass()
 	Index += "Source/".length
 	var DirName = ""
 
-	for(var i = (Index - 1); i < DirPath.length; i++) { DirName += DirPath[i]; }
+	for(var i = Index; i < DirPath.length; i++)
+		DirName += DirPath[i];
 
 	// Input new class name
 	var ClassName = await vscode.window.showInputBox(
@@ -127,45 +130,41 @@ async function NewClass()
 		placeHolder: "Class Name",
 		prompt: "Your new class name",
 		value: "MyClass"
-	})
+	});
 
 	if (ClassName === undefined) { return; }
 
 	// Error messages for invalid class names
-	if(ClassName === '') { vscode.window.showErrorMessage('Cannot leave empty'); return; } 
-	else if (ClassName.includes(" ")) { vscode.window.showErrorMessage('Class name cannot have spaces'); return; }
+	if(ClassName === '')
+	{
+		vscode.window.showErrorMessage('Cannot leave empty');
+		return;
+	} 
+	else if (ClassName.includes(" "))
+	{
+		vscode.window.showErrorMessage('Class name cannot have spaces');
+		return;
+	}
 	
 	// Create class
-	var CurrentDir = __dirname;
-	var Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && NewClass " + WsFolderPath.replace(" ", "\\ ") + " " + DirPath.replace(" ", "\\ ") + " \'" + ClassName + "\' \'" + DirName + "\'";
-	
+	var Cmd = 	"cd /; cd " + __dirname.replace(" ", "\\ ") + "; source BashCmds.sh && NewClass " + 
+				WsFolderPath.replace(" ", "\\ ") + " " + 
+				DirPath.replace(" ", "\\ ") + " \'" + 
+				ClassName + "\' \'" + 
+				DirName + "\' \'" +
+				ProjectName + "\'";
+
 	exec(Cmd,
 	function (error, stdout, stderr)
 	{
-		if (stdout.includes("File exists\n")) { vscode.window.showErrorMessage('Class name is taken'); return; }
-
-		// Get src files
-		Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && GetSrcFiles " + WsFolderPath.replace(" ", "\\ ");
-		exec(Cmd,
-		function (error, stdout, stderr)
+		if (stdout.includes("File exists\n"))
 		{
-			var SrcFiles = stdout;
+			vscode.window.showErrorMessage('Class name is taken');
+			return;
+		}
 
-			// Get include directories
-			Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && GetIncDirs " + WsFolderPath.replace(" ", "\\ ");
-			exec(Cmd,
-			function (error, stdout, stderr)
-			{
-				var IncDirs = stdout;
-
-				// Setup Cmake file
-				Cmd = "cd /; cd " + CurrentDir.replace(" ", "\\ ") + "; source BashCmds.sh && SetupCmake " + WsFolderPath.replace(" ", "\\ ") + " \'" + SrcFiles.replace(" ", "\n") + "\' \'" + ProjectName + "\' \'" + IncDirs.replace(" ", "\n") + "\'";
-				exec(Cmd,
-				function (error, stdout, stderr) { vscode.window.showInformationMessage('C++ class created'); });
-
-			});
-
-		});
+		console.log("stdout: " + stdout)
+		console.log("stderr: " + stderr)
 		
 	});
 

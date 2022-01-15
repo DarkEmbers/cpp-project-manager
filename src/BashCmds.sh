@@ -2,19 +2,17 @@
 
 function NewCppProject()
 {
-    cd /
-    cd "$2"
-    if mkdir $1; then
+	cd /
+	cd "$2"
+	if mkdir $1; then
         
-        mkdir $1
-        cd $1
-        mkdir Source
-        mkdir Includes
-        mkdir Libs
-        mkdir Build
-
-        cd Source
-        touch main.cpp
+		mkdir $1
+		cd $1
+		mkdir Source
+		mkdir Includes
+		mkdir Libs
+		mkdir Build
+		touch Source/main.cpp
 
 echo "#include <iostream>
 
@@ -23,10 +21,9 @@ int main()
     std::cout << \"Hello World!\" << std::endl;
 
     return 0;
-}" >> main.cpp
+}" >> Source/main.cpp
 
-        cd ../
-        touch $1.code-workspace
+		touch $1.code-workspace
 
 echo "{
     \"folders\": [
@@ -37,21 +34,36 @@ echo "{
     \"settings\": {}
 }" >> $1.code-workspace
 
+		Src_Files=$(find Source -type f -name "*.cpp")
+		Inc_Dirs=$(find Includes -mindepth 1 -type d)
+
+		touch Source/CMakeLists.txt
+
+echo "set(SRC_FILES
+${Src_Files// /\n}
+PARENT_SCOPE
+)" >> Source/CMakeLists.txt
+
+		touch Includes/CMakeLists.txt
+
+echo "set(INC_DIRS
+${Inc_Dirs// /\n}
+PARENT_SCOPE
+)" >> Includes/CMakeLists.txt
+
         touch CMakeLists.txt
 
 echo "cmake_minimum_required(VERSION 3.20.5)
 
 PROJECT($1)
 
-set(SRC_FILES
-Source/main.cpp
-)
-
+add_subdirectory(Source)
+add_subdirectory(Includes)
 add_executable(\${PROJECT_NAME} \${SRC_FILES})
 
-target_include_directories(\${PROJECT_NAME} PRIVATE Includes)" >> CMakeLists.txt
+target_include_directories(\${PROJECT_NAME} PRIVATE \${INC_DIRS})" >> CMakeLists.txt
     
-        cmake -S ./ -B Build
+        cmake -S . -B Build
         code -r $1.code-workspace
 
     else
@@ -67,8 +79,7 @@ function NewClass()
     # $2 New class folder path
     # $3 Class name
     # $4 Directory name
-    # $5 Src files
-    # $6 Project name
+    # $5 Project name
 
     cd /
     cd "$2"
@@ -81,7 +92,7 @@ function NewClass()
 
     touch $3.cpp
 
-echo "#include \"$3.h\"
+    echo "#include \"$3.h\"
 
 $3::$3()
 {
@@ -111,48 +122,30 @@ public:
 
 };" >> $3.h
 
-}
-
-function SetupCmake()
-{
-    # $1 Workspace path i.e folder root path
-    # $2 Src files
-    # $3 Project name
     cd /
     cd "$1"
-    rm CMakeLists.txt
-    touch CMakeLists.txt
+    Src_Files=$(find Source -type f -name '*.cpp')
 
-echo "cmake_minimum_required(VERSION 3.20.5)
-
-PROJECT($3)
-
-set(SRC_FILES
-$2
-)
-
-set(INC_DIRS
-$4
-)
-
-add_executable(\${PROJECT_NAME} \${SRC_FILES})
-
-target_include_directories(\${PROJECT_NAME} PRIVATE \${INC_DIRS})" >> CMakeLists.txt
-
-    cmake ./
-
-}
-
-function GetSrcFiles()
-{
     cd /
     cd "$1"
-    find Source -type f -name '*.cpp'
-}
+    Inc_Dirs=$(find Includes -type d)
 
-function GetIncDirs()
-{
     cd /
     cd "$1"
-    find Includes -type d
+    rm Source/CMakeLists.txt
+	touch Source/CMakeLists.txt
+
+echo "set(SRC_FILES
+${Src_Files// /\n}
+PARENT_SCOPE
+)" >> Source/CMakeLists.txt
+
+	rm Includes/CMakeLists.txt
+	touch Includes/CMakeLists.txt
+
+echo "set(INC_DIRS
+${Inc_Dirs// /\n}
+PARENT_SCOPE
+)" >> Includes/CMakeLists.txt
+
 }
