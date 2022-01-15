@@ -1,8 +1,21 @@
 {
-  "name": "cpp-project-manager",
-	"displayName": "Cpp-Project-Manager",
+	"name": "cpp-project-manager",
+	"displayName": "C++ Project Manager",
 	"description": "",
-	"version": "0.0.1",
+	"publisher": "DarkEmbers",
+	"author": {
+		"name": "Harihar Thachapully"
+	},
+	"version": "1.0.0",
+	"keywords": ["C", "Project", "Manage", "Cmake"],
+	"homepage": "https://github.com/DarkEmbers/cpp-project-manager",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/DarkEmbers/cpp-project-manager"
+	},
+	"bugs": {
+		"url": "https://github.com/DarkEmbers/cpp-project-manager/issues"
+	},
 	"engines": {
 		"vscode": "^1.62.0"
 	},
@@ -18,8 +31,8 @@
 	"contributes": {
 		"viewsWelcome": [
 			{
-			  "view": "explorer",
-			  "contents": "Create a new C++ Project.\n[Create C++ Project](command:cpp-project-manager.NewProject)"
+				"view": "explorer",
+				"contents": "Create a new C++ Project.\n[Create C++ Project](command:cpp-project-manager.NewProject)"
 			}
 		],
 		"commands": [
@@ -39,15 +52,15 @@
 		"test": "node ./test/runTest.js"
 	},
 	"devDependencies": {
-        "@types/vscode": "^1.62.0",
-        "@types/glob": "^7.1.4",
-        "@types/mocha": "^9.0.0",
-        "@types/node": "14.x",
-        "eslint": "^8.1.0",
-        "glob": "^7.1.7",
-        "mocha": "^9.1.3",
-        "typescript": "^4.4.4",
-        "@vscode/test-electron": "^1.6.2"
-    }
+		"@types/vscode": "^1.62.0",
+		"@types/glob": "^7.1.4",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "14.x",
+		"eslint": "^8.1.0",
+		"glob": "^7.1.7",
+		"mocha": "^9.1.3",
+		"typescript": "^4.4.4",
+		"@vscode/test-electron": "^1.6.2"
+	}
 
 }
