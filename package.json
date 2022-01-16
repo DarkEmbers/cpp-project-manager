@@ -28,6 +28,7 @@
 	"activationEvents": [
 		"onCommand:cpp-project-manager.NewProject",
 		"onCommand:cpp-project-manager.NewClass",
+		"onCommand:cpp-project-manager.RunExe",
 		"onView:nodeDependencies"
 	],
 	"main": "./src/extension.js",
@@ -46,8 +47,21 @@
 			{
 				"command": "cpp-project-manager.NewClass",
 				"title": "C++: New C++ Class"
+			},
+			{
+				"command": "cpp-project-manager.RunExe",
+				"title": "C++: Run Exe"
 			}
-		]
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"when": "resourceLangId == cpp || resourceLangId == c",
+					"command": "cpp-project-manager.RunExe",
+					"group": "navigation"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"lint": "eslint .",

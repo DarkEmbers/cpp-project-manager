@@ -2,6 +2,11 @@
 const vscode = require('vscode');
 const exec = require('child_process').exec;
 
+/**
+ * @var terminal @type vscode.Terminal
+ */
+ var terminal;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
@@ -15,6 +20,7 @@ function activate(context)
 	// Bind commands to functions
 	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.NewProject', NewProject));
 	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.NewClass', NewClass));
+	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.RunExe', RunExe));
 
 }
 
@@ -168,6 +174,29 @@ async function NewClass()
 		
 	});
 
+}
+
+async function RunExe()
+{
+	if (terminal)
+	{
+		terminal.dispose();
+	}
+	terminal = vscode.window.createTerminal("Code");
+
+	terminal.show(false);
+
+	var WsFolderPath = vscode.workspace.workspaceFolders[0].uri.path;
+	if (WsFolderPath === undefined)
+	{
+		vscode.window.showErrorMessage('No Vscode Workspace is currently open');
+		return;
+	}
+
+	var ProjectName = ""
+	for(var i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++) { ProjectName += WsFolderPath[i]; }
+	
+	terminal.sendText("cd " + WsFolderPath + "/Build" + " && ./" + ProjectName);
 }
 
 module.exports = 
