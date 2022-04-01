@@ -1,27 +1,23 @@
-// Imports
 const vscode = require('vscode');
 const exec = require('child_process').exec;
+const fs = require('fs');
 
 /**
- * @var terminal @type vscode.Terminal
+ * @var terminal
+ * @type {vscode.Terminal}
  */
- var terminal;
+var terminal;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-
-/**
- * @param {vscode.ExtensionContext} context
- */
+/**@param {vscode.ExtensionContext} context*/
 function activate(context)
 {
-	console.log('Congratulations, your extension "cpp-project-manager" is now active!');
-
 	// Bind commands to functions
 	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.NewProject', NewProject));
 	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.NewClass', NewClass));
 	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.RunExe', RunExe));
-
+	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.Configure', Configure));
 }
 
 // this method is called when your extension is deactivated
@@ -33,76 +29,73 @@ function deactivate()
 async function NewProject()
 {
 	// Folder picker options
-	const OpenDialogOptions = 
-	{
+	const OpenDialogOptions = {
 		canSelectMany: false,
 		openLabel: "Select Folder",
 		canSelectFiles: false,
 		canSelectFolders: true
 	};
 
-	// Get the full path of new class
+	// Get the full path of new Project
 	// Use folder picker
-	var DirPath;
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => 
+	var DirPath = "";
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri =>
 	{
-		if (fileUri === undefined) { return; }
 		DirPath = fileUri[0].fsPath;
-
 	});
 
-	// Cancel if no folder is selected
-	if (DirPath === undefined) { return; }
+	// Return if no folder is selected
+	if (DirPath === undefined)
+		return;
 
 	// Take input
-	var ProjectName = await vscode.window.showInputBox(
-	{
-		placeHolder: "Project Name",
-		prompt: "Your new project name",
-		value: "MyProject"
-	});
-	
-	if(ProjectName === '')
-		vscode.window.showErrorMessage('Cannot leave empty');
-	  
-	if(ProjectName === undefined) { return; }
-	
-	// Create command
-	var Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; source BashCmds.sh && NewCppProject \"" + ProjectName + "\" " + DirPath.replace(" ", "\\ ");
-
-	// Exec command
-	exec(Cmd,
-	function (error, stdout, stderr)
-	{
-		if (stdout === "Failed\n")
+	var ProjectName = await vscode.window.showInputBox({
+		placeHolder: "MyProject",
+		prompt: "Your new C++ project name",
+		value: "MyProject",
+		title: "Project Name",
+		ignoreFocusOut: true,
+		validateInput: text =>
 		{
-			vscode.window.showErrorMessage('Project with same name already exists');
-			return;
+			if (text === "")
+				return "Cannot leave empty";
+
+			else if (text.includes(" "))
+				return "Project name cannot have spaces";
+
+			var FilenameOutput = undefined;
+			fs.readdirSync(DirPath).forEach(file =>
+			{
+				if (file.trim().toLowerCase() == text.toLowerCase())
+				{
+					FilenameOutput = "File with same name already exists";
+					return;
+				}
+
+			});
+
+			if (FilenameOutput !== undefined)
+				return FilenameOutput;
+
 		}
 
-		vscode.window.showInformationMessage('C++ project created');
 	});
 
+	if (ProjectName === undefined)
+		return;
+
+	ExecCmd("NewProject.sh", [ProjectName, DirPath.replace(" ", "\\ ")]);
+	vscode.window.showInformationMessage('C++ project created');
 }
 
 async function NewClass()
 {
-	// Get full path to root folder of project
-	
-	var WsFolderPath = vscode.workspace.workspaceFolders[0].uri.path;
-	if (WsFolderPath === undefined)
-	{
-		vscode.window.showErrorMessage('No Vscode Workspace is currently open');
-		return;
-	}
-
-	var ProjectName = ""
-	for(var i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++) { ProjectName += WsFolderPath[i]; }
+	var WsFolderPath = GetRootPath()
+	var ProjectName = GetProjectName();
 
 	// Folder picker options
-	const OpenDialogOptions = 
-	{
-		defaultUri: vscode.Uri.file(WsFolderPath + "/Source"),
+	const OpenDialogOptions = {
+		defaultUri: vscode.Uri.file(WsFolderPath + "/src"),
 		canSelectMany: false,
 		openLabel: "Select Folder",
 		canSelectFiles: false,
@@ -111,96 +104,136 @@ async function NewClass()
 
 	// Get the full path of new class
 	// Use folder picker
-	var DirPath;
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => 
+	var DirPath = "";
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri =>
 	{
-		if (fileUri === undefined) { return; }
 		DirPath = fileUri[0].fsPath;
-
 	})
 
-	// Cancel if no folder is selected
-	if (DirPath === undefined) { return; }
+	// Return if no folder is selected
+	if (DirPath === undefined)
+		return;
 
-	// Find the Name of the directory 
-	var Index = DirPath.replace(" ", "\\ ").indexOf("Source", -1);
-	Index += "Source/".length
-	var DirName = ""
+	var DirName = DirPath.replace(WsFolderPath + "/src", "");
 
-	for(var i = Index; i < DirPath.length; i++)
-		DirName += DirPath[i];
+	if (DirName == "")
+		DirName = ".";
+
+	else
+		DirName = DirName.replace("/", "");
 
 	// Input new class name
-	var ClassName = await vscode.window.showInputBox(
-	{
-		placeHolder: "Class Name",
+	var ClassName = await vscode.window.showInputBox({
+		placeHolder: "MyClass",
 		prompt: "Your new class name",
-		value: "MyClass"
+		value: "MyClass",
+		title: "Class Name",
+		ignoreFocusOut: true,
+		validateInput: text =>
+		{
+			if (text === "")
+				return "Cannot leave empty";
+
+			else if (text.includes(" "))
+				return "Class name cannot have spaces";
+
+			var FilenameOutput = undefined;
+			fs.readdirSync(DirPath).forEach(file =>
+			{
+				if (file.trim().toLowerCase() == text.toLowerCase() + ".cpp")
+				{
+					FilenameOutput = "File with same name already exists";
+					return;
+				}
+
+			});
+
+			if (FilenameOutput !== undefined)
+				return FilenameOutput;
+
+		}
 	});
 
 	if (ClassName === undefined) { return; }
 
-	// Error messages for invalid class names
-	if(ClassName === '')
-	{
-		vscode.window.showErrorMessage('Cannot leave empty');
-		return;
-	} 
-	else if (ClassName.includes(" "))
-	{
-		vscode.window.showErrorMessage('Class name cannot have spaces');
-		return;
-	}
-	
-	// Create class
-	var Cmd = 	"cd /; cd " + __dirname.replace(" ", "\\ ") + "; source BashCmds.sh && NewClass " + 
-				WsFolderPath.replace(" ", "\\ ") + " " + 
-				DirPath.replace(" ", "\\ ") + " \'" + 
-				ClassName + "\' \'" + 
-				DirName + "\' \'" +
-				ProjectName + "\'";
-
-	exec(Cmd,
-	function (error, stdout, stderr)
-	{
-		if (stdout.includes("File exists\n"))
-		{
-			vscode.window.showErrorMessage('Class name is taken');
-			return;
-		}
-
-		console.log("stdout: " + stdout)
-		console.log("stderr: " + stderr)
-		
-	});
-
+	ExecCmd("NewClass.sh", [WsFolderPath.replace(" ", "\\ "), DirPath.replace(" ", "\\ "), ClassName, DirName, ProjectName]);
 }
 
 async function RunExe()
 {
+	// Create/re-create terminal
 	if (terminal)
-	{
 		terminal.dispose();
-	}
-	terminal = vscode.window.createTerminal("Code");
 
+	terminal = vscode.window.createTerminal("Code");
 	terminal.show(false);
 
-	var WsFolderPath = vscode.workspace.workspaceFolders[0].uri.path;
-	if (WsFolderPath === undefined)
-	{
-		vscode.window.showErrorMessage('No Vscode Workspace is currently open');
-		return;
-	}
+	var WsFolderPath = GetRootPath();
+	var ProjectName = GetProjectName();
 
-	var ProjectName = ""
-	for(var i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++) { ProjectName += WsFolderPath[i]; }
-	
-	terminal.sendText("cd " + WsFolderPath + "/Build" + " && ./" + ProjectName);
+	// run exe
+	terminal.sendText("cd " + WsFolderPath + "/build" + " && ./" + ProjectName);
 }
 
-module.exports = 
+async function Configure()
 {
+	var WsFolderPath = GetRootPath()
+	ExecCmd("Configure.sh", [WsFolderPath.replace(" ", "\\ ")]);
+}
+
+/**
+ * @summary Gets the absolute path of the workspace i.e the root path
+ * @returns {string}
+ */
+function GetRootPath()
+{
+	try { return vscode.workspace.workspaceFolders[0].uri.path; }
+	catch (error) { vscode.window.showErrorMessage('No project workspace is currently open'); }
+
+}
+
+/**
+ * @summary Returns Project Name
+ * @returns {string} string
+ */
+function GetProjectName()
+{
+	var WsFolderPath = GetRootPath();
+	var ProjectName = ""
+
+	for (var i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++)
+	{
+		ProjectName += WsFolderPath[i];
+	}
+
+	return ProjectName;
+}
+
+/**
+ * @summary Executes a command from bash file
+ * @param {string} BashFile Name of Bash file to run
+ * @param {string[]} BashParams List of params to run with bash file
+ * @returns {string} string
+ */
+function ExecCmd(BashFile, BashParams)
+{
+	var Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; sh " + BashFile + " ";
+	BashParams.forEach(value =>
+	{
+		Cmd += "\"" + value + "\" ";
+	});
+
+	var Output;
+	exec(Cmd,
+		function (error, stdout)
+		{
+			Output = stdout;
+		});
+
+	return Output;
+}
+
+module.exports = {
 	activate,
 	deactivate
 }
