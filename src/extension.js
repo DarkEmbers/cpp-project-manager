@@ -28,6 +28,15 @@ function deactivate()
 
 async function NewProject()
 {
+	// QuickPick options
+	const QuickPickOptions = {
+		title: "Project Type",
+		ignoreFocusOut: true,
+		canPickMany: false,
+	};
+
+	let ProjectType = await vscode.window.showQuickPick(["App", "Library"], QuickPickOptions);
+
 	// Folder picker options
 	const OpenDialogOptions = {
 		canSelectMany: false,
@@ -38,18 +47,14 @@ async function NewProject()
 
 	// Get the full path of new Project
 	// Use folder picker
-	var DirPath = "";
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri =>
-	{
-		DirPath = fileUri[0].fsPath;
-	});
+	let DirPath = "";
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath );
 
 	// Return if no folder is selected
-	if (DirPath === undefined)
-		return;
+	if (DirPath === undefined || DirPath === '0') { return; }
 
 	// Take input
-	var ProjectName = await vscode.window.showInputBox({
+	let ProjectName = await vscode.window.showInputBox({
 		placeHolder: "MyProject",
 		prompt: "Your new C++ project name",
 		value: "MyProject",
@@ -63,7 +68,11 @@ async function NewProject()
 			else if (text.includes(" "))
 				return "Project name cannot have spaces";
 
-			var FilenameOutput = undefined;
+			const SpecialChars = /[`!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~±§]/;
+			if (SpecialChars.test(text) == true)
+				return "Special characters not allowed"
+
+			let FilenameOutput = undefined;
 			fs.readdirSync(DirPath).forEach(file =>
 			{
 				if (file.trim().toLowerCase() == text.toLowerCase())
@@ -81,17 +90,26 @@ async function NewProject()
 
 	});
 
-	if (ProjectName === undefined)
-		return;
+	if (ProjectName === undefined) { return; }
 
-	ExecCmd("NewProject.sh", [ProjectName, DirPath.replace(" ", "\\ ")]);
+	switch (ProjectType)
+	{
+		case "App":
+		ExecCmd("NewApp.sh", [ProjectName, DirPath.replace(" ", "\\ ")]);
+		break;
+
+		case "Library":
+		ExecCmd("NewLib.sh", [ProjectName, DirPath.replace(" ", "\\ ")]);
+		break;
+	}
+	
 	vscode.window.showInformationMessage('C++ project created');
 }
 
 async function NewClass()
 {
-	var WsFolderPath = GetRootPath()
-	var ProjectName = GetProjectName();
+	let WsFolderPath = GetRootPath()
+	let ProjectName = GetProjectName();
 
 	// Folder picker options
 	const OpenDialogOptions = {
@@ -104,26 +122,19 @@ async function NewClass()
 
 	// Get the full path of new class
 	// Use folder picker
-	var DirPath = "";
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri =>
-	{
-		DirPath = fileUri[0].fsPath;
-	})
+	let DirPath = "";
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath );
 
 	// Return if no folder is selected
-	if (DirPath === undefined)
-		return;
+	if (DirPath === undefined || DirPath === '0') { return; }
 
-	var DirName = DirPath.replace(WsFolderPath + "/src", "");
+	let DirName = DirPath.replace(WsFolderPath + "/src", "");
 
-	if (DirName == "")
-		DirName = ".";
-
-	else
-		DirName = DirName.replace("/", "");
+	if (DirName == "") { DirName = "."; }
+	else { DirName = DirName.replace("/", ""); }
 
 	// Input new class name
-	var ClassName = await vscode.window.showInputBox({
+	let ClassName = await vscode.window.showInputBox({
 		placeHolder: "MyClass",
 		prompt: "Your new class name",
 		value: "MyClass",
@@ -137,7 +148,11 @@ async function NewClass()
 			else if (text.includes(" "))
 				return "Class name cannot have spaces";
 
-			var FilenameOutput = undefined;
+			const SpecialChars = /[`!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~±§]/;
+			if (SpecialChars.test(text) == true)
+				return "Special characters not allowed"
+
+			let FilenameOutput = undefined;
 			fs.readdirSync(DirPath).forEach(file =>
 			{
 				if (file.trim().toLowerCase() == text.toLowerCase() + ".cpp")
@@ -162,14 +177,13 @@ async function NewClass()
 async function RunExe()
 {
 	// Create/re-create terminal
-	if (terminal)
-		terminal.dispose();
+	if (terminal) { terminal.dispose(); }
 
 	terminal = vscode.window.createTerminal("Code");
 	terminal.show(false);
 
-	var WsFolderPath = GetRootPath();
-	var ProjectName = GetProjectName();
+	let WsFolderPath = GetRootPath();
+	let ProjectName = GetProjectName();
 
 	// run exe
 	terminal.sendText("cd " + WsFolderPath + "/build" + " && ./" + ProjectName);
@@ -177,7 +191,7 @@ async function RunExe()
 
 async function Configure()
 {
-	var WsFolderPath = GetRootPath()
+	let WsFolderPath = GetRootPath()
 	ExecCmd("Configure.sh", [WsFolderPath.replace(" ", "\\ ")]);
 }
 
@@ -189,7 +203,6 @@ function GetRootPath()
 {
 	try { return vscode.workspace.workspaceFolders[0].uri.path; }
 	catch (error) { vscode.window.showErrorMessage('No project workspace is currently open'); }
-
 }
 
 /**
@@ -198,10 +211,10 @@ function GetRootPath()
  */
 function GetProjectName()
 {
-	var WsFolderPath = GetRootPath();
-	var ProjectName = ""
+	let WsFolderPath = GetRootPath();
+	let ProjectName = ""
 
-	for (var i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++)
+	for (let i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++)
 	{
 		ProjectName += WsFolderPath[i];
 	}
@@ -217,13 +230,13 @@ function GetProjectName()
  */
 function ExecCmd(BashFile, BashParams)
 {
-	var Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; sh " + BashFile + " ";
+	let Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; sh " + BashFile + " ";
 	BashParams.forEach(value =>
 	{
 		Cmd += "\"" + value + "\" ";
 	});
 
-	var Output;
+	let Output;
 	exec(Cmd,
 		function (error, stdout)
 		{

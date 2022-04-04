@@ -11,3 +11,8 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 - Added 'Run Exe' command
 - Added 'Configure' command
 - Updated project naming and structure
+
+## 1.0.2
+
+- Added option to create new library project
+- Gives error when inputting special characters in project/class name

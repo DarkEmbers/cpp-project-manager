@@ -32,7 +32,8 @@ echo "{
 }" >> $1.code-workspace
 
 # setup CMakeLists.txt file
-echo "cmake_minimum_required(VERSION 3.20.5)
+echo "cmake_minimum_required(VERSION $(cmake --version | grep version | awk '{print $NF}'))
+
 
 PROJECT($1)
 
