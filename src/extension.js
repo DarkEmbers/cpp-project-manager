@@ -8,6 +8,12 @@ const fs = require('fs');
  */
 var terminal;
 
+/**
+ * @var SpecialChars
+ * @type {RegExp}
+ */
+const SpecialChars = /[`!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~±§]/;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 /**@param {vscode.ExtensionContext} context*/
@@ -68,7 +74,6 @@ async function NewProject()
 			else if (text.includes(" "))
 				return "Project name cannot have spaces";
 
-			const SpecialChars = /[`!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~±§]/;
 			if (SpecialChars.test(text) == true)
 				return "Special characters not allowed"
 
@@ -95,11 +100,11 @@ async function NewProject()
 	switch (ProjectType)
 	{
 		case "App":
-		ExecCmd("NewApp.sh", [ProjectName, DirPath.replace(" ", "\\ ")]);
+		ExecCmd("NewApp.sh", [ProjectName, DirPath]);
 		break;
 
 		case "Library":
-		ExecCmd("NewLib.sh", [ProjectName, DirPath.replace(" ", "\\ ")]);
+		ExecCmd("NewLib.sh", [ProjectName, DirPath]);
 		break;
 	}
 	
@@ -128,10 +133,10 @@ async function NewClass()
 	// Return if no folder is selected
 	if (DirPath === undefined || DirPath === '0') { return; }
 
-	let DirName = DirPath.replace(WsFolderPath + "/src", "");
+	let DirName = DirPath.replace(WsFolderPath + "/src/", "");
 
 	if (DirName == "") { DirName = "."; }
-	else { DirName = DirName.replace("/", ""); }
+	// else { DirName = DirName.replace("/", ""); }
 
 	// Input new class name
 	let ClassName = await vscode.window.showInputBox({
@@ -148,7 +153,6 @@ async function NewClass()
 			else if (text.includes(" "))
 				return "Class name cannot have spaces";
 
-			const SpecialChars = /[`!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~±§]/;
 			if (SpecialChars.test(text) == true)
 				return "Special characters not allowed"
 
@@ -171,7 +175,7 @@ async function NewClass()
 
 	if (ClassName === undefined) { return; }
 
-	ExecCmd("NewClass.sh", [WsFolderPath.replace(" ", "\\ "), DirPath.replace(" ", "\\ "), ClassName, DirName, ProjectName]);
+	ExecCmd("NewClass.sh", [WsFolderPath, DirPath, ClassName, DirName, ProjectName]);
 }
 
 async function RunExe()
@@ -186,13 +190,13 @@ async function RunExe()
 	let ProjectName = GetProjectName();
 
 	// run exe
-	terminal.sendText("cd " + WsFolderPath + "/build" + " && ./" + ProjectName);
+	terminal.sendText("cd \"" + WsFolderPath + "/build\"" + " && ./" + ProjectName);
 }
 
 async function Configure()
 {
 	let WsFolderPath = GetRootPath()
-	ExecCmd("Configure.sh", [WsFolderPath.replace(" ", "\\ ")]);
+	ExecCmd("Configure.sh", [WsFolderPath]);
 }
 
 /**
@@ -212,12 +216,10 @@ function GetRootPath()
 function GetProjectName()
 {
 	let WsFolderPath = GetRootPath();
-	let ProjectName = ""
+	let ProjectName = "";
 
 	for (let i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++)
-	{
 		ProjectName += WsFolderPath[i];
-	}
 
 	return ProjectName;
 }
@@ -237,12 +239,7 @@ function ExecCmd(BashFile, BashParams)
 	});
 
 	let Output;
-	exec(Cmd,
-		function (error, stdout)
-		{
-			Output = stdout;
-		});
-
+	exec(Cmd, (error, stdout) => Output = stdout);
 	return Output;
 }
 

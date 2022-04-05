@@ -24,9 +24,9 @@ $3::~$3()
 }" >> $3.cpp
 
 cd /
-cd $1
+cd "$1"
 cd include
-mkdir "$4"
+mkdir -p "$4"
 touch "$4"/$3.h
 
 echo "#pragma once
@@ -41,15 +41,15 @@ public:
 };" >> "$4"/$3.h
 
 cd /
-cd $1
+cd "$1"
 Src_Files=$(find src -type f -name '*.cpp')
 
 cd /
-cd $1
+cd "$1"
 Inc_Dirs=$(find include -type d)
 
 cd /
-cd $1
+cd "$1"
 rm src/CMakeLists.txt
 touch src/CMakeLists.txt
 
