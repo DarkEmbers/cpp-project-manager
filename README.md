@@ -43,7 +43,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.0.2
+## 1.0.4
 
-- Added option to create new library project
-- Gives error when inputting special characters in project/class name
+- Fixed bug, header file in wrong directory

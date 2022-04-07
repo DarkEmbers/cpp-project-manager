@@ -42,6 +42,7 @@ async function NewProject()
 	};
 
 	let ProjectType = await vscode.window.showQuickPick(["App", "Library"], QuickPickOptions);
+	if (ProjectType === undefined) { return; }
 
 	// Folder picker options
 	const OpenDialogOptions = {
@@ -133,10 +134,11 @@ async function NewClass()
 	// Return if no folder is selected
 	if (DirPath === undefined || DirPath === '0') { return; }
 
-	let DirName = DirPath.replace(WsFolderPath + "/src/", "");
-
+	let DirName = DirPath.replace(WsFolderPath + "/src", "");
 	if (DirName == "") { DirName = "."; }
-	// else { DirName = DirName.replace("/", ""); }
+	else { DirName = DirName.replace("/", ""); }
+
+	console.log(DirName);
 
 	// Input new class name
 	let ClassName = await vscode.window.showInputBox({
@@ -175,7 +177,7 @@ async function NewClass()
 
 	if (ClassName === undefined) { return; }
 
-	ExecCmd("NewClass.sh", [WsFolderPath, DirPath, ClassName, DirName, ProjectName]);
+	console.log(ExecCmd("NewClass.sh", [WsFolderPath, DirPath, ClassName, DirName, ProjectName]));
 }
 
 async function RunExe()

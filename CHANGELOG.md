@@ -16,3 +16,11 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 
 - Added option to create new library project
 - Gives error when inputting special characters in project/class name
+
+## 1.0.3
+
+- Fixed bug, file creation not working with specific directories
+
+## 1.0.4
+
+- Fixed bug, header file in wrong directory
