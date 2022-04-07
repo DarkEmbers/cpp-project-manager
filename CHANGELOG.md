@@ -24,3 +24,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.0.4
 
 - Fixed bug, header file in wrong directory
+
+## 1.0.5
+
+- Fixed bug, Configure command

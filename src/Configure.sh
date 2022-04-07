@@ -3,15 +3,15 @@
 # $1 Workspace path i.e folder root path
 
 cd /
-cd $1
+cd "$1"
 Src_Files=$(find src -type f -name '*.cpp')
 
 cd /
-cd $1
+cd "$1"
 Inc_Dirs=$(find include -type d)
 
 cd /
-cd $1
+cd "$1"
 rm src/CMakeLists.txt
 touch src/CMakeLists.txt
 

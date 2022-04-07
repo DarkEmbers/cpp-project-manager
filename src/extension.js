@@ -198,7 +198,7 @@ async function RunExe()
 async function Configure()
 {
 	let WsFolderPath = GetRootPath()
-	ExecCmd("Configure.sh", [WsFolderPath]);
+	console.log(ExecCmd("Configure.sh", [WsFolderPath]));
 }
 
 /**

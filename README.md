@@ -43,6 +43,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.0.4
+## 1.0.5
 
-- Fixed bug, header file in wrong directory
+- Fixed bug, Configure command
