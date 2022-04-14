@@ -43,6 +43,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.0.5
+## 1.0.6
 
-- Fixed bug, Configure command
+- Added C file detection, Configure command

@@ -28,3 +28,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.0.5
 
 - Fixed bug, Configure command
+
+## 1.0.6
+
+- Added C file detection, Configure command

@@ -4,7 +4,7 @@
 
 cd /
 cd "$1"
-Src_Files=$(find src -type f -name '*.cpp')
+Src_Files=$(find src -type f \( -iname \*.cpp -o -iname \*.c \))
 
 cd /
 cd "$1"
