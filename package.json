@@ -11,7 +11,8 @@
 		"C",
 		"Project",
 		"Manage",
-		"Cmake"
+		"Cmake",
+		"C++"
 	],
 	"homepage": "https://github.com/DarkEmbers/cpp-project-manager",
 	"repository": {
@@ -31,8 +32,7 @@
 	],
 	"activationEvents": [
 		"onCommand:cpp-project-manager.NewProject",
-		"onView:nodeDependencies",
-		"workspaceContains:**/CMakeLists.txt"
+		"onView:nodeDependencies"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
@@ -64,13 +64,15 @@
 			"editor/context": [
 				{
 					"command": "cpp-project-manager.RunExe",
-					"group": "cpp-project-manager"
+					"group": "navigation",
+					"when": "cpp-proj.hasCMake"
 				}
 			],
 			"explorer/context": [
 				{
 					"command": "cpp-project-manager.NewClass",
-					"group": "cpp-project-manager"
+					"group": "navigation",
+					"when": "cpp-proj.hasCMake"
 				},
 				{
 					"command": "cpp-project-manager.NewProject",
@@ -78,7 +80,8 @@
 				},
 				{
 					"command": "cpp-project-manager.RunExe",
-					"group": "cpp-project-manager"
+					"group": "navigation",
+					"when": "cpp-proj.hasCMake"
 				}
 			]
 		}
