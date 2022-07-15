@@ -6,7 +6,7 @@
 	"author": {
 		"name": "Harihar Thachapully"
 	},
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"keywords": [
 		"C",
 		"Project",
@@ -28,11 +28,13 @@
 		"vscode": "^1.62.0"
 	},
 	"categories": [
+		"Programming Languages",
 		"Other"
 	],
 	"activationEvents": [
 		"onCommand:cpp-project-manager.NewProject",
-		"onView:nodeDependencies"
+		"onView:nodeDependencies",
+		"workspaceContains:**/CMakeLists.txt"
 	],
 	"main": "./src/extension.js",
 	"contributes": {

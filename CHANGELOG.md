@@ -32,3 +32,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.0.6
 
 - Added C file detection, Configure command
+
+## 1.0.7
+
+- Hide menu commands outside C++ projects

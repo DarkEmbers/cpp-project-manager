@@ -8,8 +8,6 @@ An extension that simplifies the proccess of creating and managing C++ projects,
 
 ![](./images/NewProject.png)
 
-![](./images/ProjectStructure.png)
-
 ### New Class
 
 ![](./images/NewClass.png)
@@ -43,6 +41,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.0.6
+## 1.0.7
 
-- Added C file detection, Configure command
+- Hide menu commands outside C++ projects
