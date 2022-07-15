@@ -1,6 +1,6 @@
-const vscode = require('vscode');
-const exec = require('child_process').exec;
-const fs = require('fs');
+const vscode = require("vscode");
+const exec = require("child_process").exec;
+const fs = require("fs");
 
 /**
  * @var terminal
@@ -8,22 +8,28 @@ const fs = require('fs');
  */
 var terminal;
 
-/**
- * @var SpecialChars
- * @type {RegExp}
- */
-const SpecialChars = /[`!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~±§]/;
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 /**@param {vscode.ExtensionContext} context*/
 function activate(context)
 {
 	// Bind commands to functions
-	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.NewProject', NewProject));
-	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.NewClass', NewClass));
-	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.RunExe', RunExe));
-	context.subscriptions.push(vscode.commands.registerCommand('cpp-project-manager.Configure', Configure));
+	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.NewProject", NewProject));
+	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.NewClass", NewClass));
+	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.RunExe", RunExe));
+	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.Configure", Configure));
+	vscode.workspace.onDidOpenTextDocument(() => 
+	{
+		// Check if CMakeLists.txt exists in workspace folder
+		let CMakeListsPath = GetRootPath() + "/CMakeLists.txt";
+		// Set context
+		if (fs.existsSync(CMakeListsPath))
+			vscode.commands.executeCommand("setContext", "cpp-proj.hasCMake", true);
+		
+		else
+			vscode.commands.executeCommand("setContext", "cpp-proj.hasCMake", false);
+	});
+
 }
 
 // this method is called when your extension is deactivated
@@ -58,7 +64,7 @@ async function NewProject()
 	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath );
 
 	// Return if no folder is selected
-	if (DirPath === undefined || DirPath === '0') { return; }
+	if (DirPath === undefined || DirPath === "0") { return; }
 
 	// Take input
 	let ProjectName = await vscode.window.showInputBox({
@@ -75,7 +81,7 @@ async function NewProject()
 			else if (text.includes(" "))
 				return "Project name cannot have spaces";
 
-			if (SpecialChars.test(text) == true)
+			if (text.match(/^[0-9A-Za-z-_]+$/) === null)
 				return "Special characters not allowed"
 
 			let FilenameOutput = undefined;
@@ -109,7 +115,7 @@ async function NewProject()
 		break;
 	}
 	
-	vscode.window.showInformationMessage('C++ project created');
+	vscode.window.showInformationMessage("C++ project created");
 }
 
 async function NewClass()
@@ -132,7 +138,7 @@ async function NewClass()
 	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath );
 
 	// Return if no folder is selected
-	if (DirPath === undefined || DirPath === '0') { return; }
+	if (DirPath === undefined || DirPath === "0") { return; }
 
 	let DirName = DirPath.replace(WsFolderPath + "/src", "");
 	if (DirName == "") { DirName = "."; }
@@ -155,7 +161,7 @@ async function NewClass()
 			else if (text.includes(" "))
 				return "Class name cannot have spaces";
 
-			if (SpecialChars.test(text) == true)
+			if (text.match(/^[0-9A-Za-z-_]+$/) === null)
 				return "Special characters not allowed"
 
 			let FilenameOutput = undefined;
@@ -208,7 +214,7 @@ async function Configure()
 function GetRootPath()
 {
 	try { return vscode.workspace.workspaceFolders[0].uri.path; }
-	catch (error) { vscode.window.showErrorMessage('No project workspace is currently open'); }
+	catch (error) { vscode.window.showErrorMessage("No project workspace is currently open"); }
 }
 
 /**
