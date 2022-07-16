@@ -36,3 +36,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.0.7
 
 - Hide menu commands outside C++ projects
+
+## 1.0.8
+
+- Open Files in editor when class is created

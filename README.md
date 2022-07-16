@@ -41,6 +41,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.0.7
+## 1.0.8
 
-- Hide menu commands outside C++ projects
+- Open Files in editor when class is created
