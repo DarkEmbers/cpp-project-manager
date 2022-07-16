@@ -144,8 +144,6 @@ async function NewClass()
 	if (DirName == "") { DirName = "."; }
 	else { DirName = DirName.replace("/", ""); }
 
-	console.log(DirName);
-
 	// Input new class name
 	let ClassName = await vscode.window.showInputBox({
 		placeHolder: "MyClass",
