@@ -18,6 +18,12 @@ function activate(context)
 	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.NewClass", NewClass));
 	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.RunExe", RunExe));
 	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.Configure", Configure));
+
+	vscode.window.onDidCloseTerminal((EventTerminal) =>
+	{
+		if (EventTerminal == terminal) { terminal = undefined; }
+	});
+
 	vscode.workspace.onDidOpenTextDocument(() => 
 	{
 		// Check if CMakeLists.txt exists in workspace folder
@@ -186,11 +192,10 @@ async function NewClass()
 
 async function RunExe()
 {
-	// Create/re-create terminal
-	if (terminal) { terminal.dispose(); }
+	if (!terminal) { terminal = vscode.window.createTerminal("Code"); } // Create new terminal if it doesn't exist
 
-	terminal = vscode.window.createTerminal("Code");
-	terminal.show(false);
+	terminal.sendText("clear");
+	terminal.show(true);
 
 	let WsFolderPath = GetRootPath();
 	let ProjectName = GetProjectName();
