@@ -12,7 +12,6 @@ cd /
 cd "$1"
 cd include
 mkdir -p "$4"
-touch "$4"/$3.h
 
 echo "#pragma once
 
@@ -23,13 +22,12 @@ public:
     $3();
     ~$3();
 
-};" >> "$4"/$3.h
+};" > "$4"/$3.h
 
 code "$4"/$3.h
 
 cd /
 cd "$2"
-touch $3.cpp
 
 echo "#include \"$3.h\"
 
@@ -41,7 +39,7 @@ $3::$3()
 $3::~$3()
 {
     
-}" >> $3.cpp
+}" > $3.cpp
 
 code $3.cpp
 

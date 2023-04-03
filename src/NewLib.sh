@@ -15,13 +15,6 @@ if mkdir $1; then
 	mkdir lib
 	mkdir tests
 
-	touch $1.code-workspace
-	touch CMakeLists.txt
-	touch src/CMakeLists.txt
-	touch include/CMakeLists.txt
-	touch src/$1.cpp
-	touch include/$1.h
-
 # Setup workspace folder
 echo "{
 	\"folders\":
@@ -31,7 +24,7 @@ echo "{
 		}
 	],
 	\"settings\": {}
-}" >> $1.code-workspace
+}" > $1.code-workspace
 
 # setup CMakeLists.txt file
 echo "cmake_minimum_required(VERSION $(cmake --version | grep version | awk '{print $NF}'))
@@ -42,17 +35,17 @@ add_subdirectory(src)
 add_subdirectory(include)
 add_library(\${PROJECT_NAME} STATIC \${SRC_FILES})
 
-target_include_directories(\${PROJECT_NAME} PRIVATE \${INC_DIRS})" >> CMakeLists.txt
+target_include_directories(\${PROJECT_NAME} PRIVATE \${INC_DIRS})" > CMakeLists.txt
 
 echo "set(SRC_FILES
 src/$1.cpp
 PARENT_SCOPE
-)" >> src/CMakeLists.txt
+)" > src/CMakeLists.txt
 
 echo "set(INC_DIRS
 include
 PARENT_SCOPE
-)" >> include/CMakeLists.txt
+)" > include/CMakeLists.txt
 
 echo "#include \"$1.h\"
 
@@ -64,7 +57,7 @@ $1::$1()
 $1::~$1()
 {
     
-}" >> src/$1.cpp
+}" > src/$1.cpp
 
 echo "#pragma once
 
@@ -75,7 +68,7 @@ public:
     $1();
     ~$1();
 
-};" >> include/$1.h
+};" > include/$1.h
 
 	# run CMake
 	cmake -S . -B build
