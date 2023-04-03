@@ -1,6 +1,7 @@
 const vscode = require("vscode");
 const exec = require("child_process").exec;
 const fs = require("fs");
+const os = require('os');
 
 /**
  * @var terminal
@@ -243,11 +244,18 @@ function GetProjectName()
  */
 function ExecCmd(BashFile, BashParams)
 {
-	let Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; sh " + BashFile + " ";
+	let BashCode = "sh";
+	if (os.platform().startsWith("linux") || os.platform().startsWith("win"))
+		BashCode = "bash"
+
+	let Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; " + BashCode + " " + BashFile + " ";
 	BashParams.forEach(value =>
 	{
 		Cmd += "\"" + value + "\" ";
 	});
+
+	console.log(os.platform());
+	console.log(Cmd);
 
 	let Output;
 	exec(Cmd, (error, stdout) => Output = stdout);

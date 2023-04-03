@@ -41,6 +41,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.0.9
+## 1.0.10
 
-- Clear terminal instead of dispose for faster execute time
+- Fix for Linux systems

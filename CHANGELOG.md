@@ -44,3 +44,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.0.9
 
 - Clear terminal instead of dispose for faster execute time
+
+## 1.0.10
+
+- Fix for Linux systems
