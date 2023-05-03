@@ -1,0 +1,4 @@
+set(INC_DIRS
+%INC%
+PARENT_SCOPE
+)

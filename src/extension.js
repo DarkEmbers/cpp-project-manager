@@ -2,6 +2,7 @@ const vscode = require("vscode");
 const exec = require("child_process").exec;
 const fs = require("fs");
 const os = require('os');
+const { execSync } = require("child_process"); 
 
 /**
  * @var terminal
@@ -32,7 +33,7 @@ function activate(context)
 		// Set context
 		if (fs.existsSync(CMakeListsPath))
 			vscode.commands.executeCommand("setContext", "cpp-proj.hasCMake", true);
-		
+
 		else
 			vscode.commands.executeCommand("setContext", "cpp-proj.hasCMake", false);
 	});
@@ -45,6 +46,9 @@ function deactivate()
 
 }
 
+/**
+ * @summary Setup new project with CMake
+ */
 async function NewProject()
 {
 	// QuickPick options
@@ -68,10 +72,9 @@ async function NewProject()
 	// Get the full path of new Project
 	// Use folder picker
 	let DirPath = "";
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath );
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath);
 
-	// Return if no folder is selected
-	if (DirPath === undefined || DirPath === "0") { return; }
+	if (DirPath === undefined || DirPath === "0") { return; } // Return if no folder is selected
 
 	// Take input
 	let ProjectName = await vscode.window.showInputBox({
@@ -110,25 +113,77 @@ async function NewProject()
 	});
 
 	if (ProjectName === undefined) { return; }
+	var ProjectPath = DirPath + "/" + ProjectName;
 
-	switch (ProjectType)
+	// Create folders
+	CreateFolder(ProjectPath);
+	CreateFolder(`${ProjectPath}/build`);
+	CreateFolder(`${ProjectPath}/src`);
+	CreateFolder(`${ProjectPath}/include`);
+	CreateFolder(`${ProjectPath}/lib`);
+
+	// Create files
+	var Workspace = fs.readFileSync(`${__dirname}/templates/project.code-workspace`, "utf8").toString();
+	CreateFile(`${ProjectPath}/${ProjectName}.code-workspace`, Workspace);
+
+	// Get Cmake version
+	var match = execSync("cmake --version").toString().match(/cmake version (\d+\.\d+\.\d+)/);
+	if (!match) 
 	{
-		case "App":
-		ExecCmd("NewApp.sh", [ProjectName, DirPath]);
-		break;
-
-		case "Library":
-		ExecCmd("NewLib.sh", [ProjectName, DirPath]);
-		break;
+		vscode.window.showErrorMessage("CMake not found");
+		return;
 	}
-	
+	var version = match[1];
+	// Use template and fill details
+	var CMakeLists = fs.readFileSync(`${__dirname}/templates/rootCMakeLists.txt`, "utf8").toString();
+	CMakeLists = CMakeLists.replace(/%VER%/g, version);
+	CMakeLists = CMakeLists.replace(/%NAME%/g, ProjectName);
+	CMakeLists = CMakeLists.replace(/%TYPE%/g, (ProjectType == "App") ?
+	"add_executable(${PROJECT_NAME} ${SRC_FILES})" : "add_library(${PROJECT_NAME} STATIC ${SRC_FILES})");
+	CreateFile(`${ProjectPath}/CMakeLists.txt`, CMakeLists);
+
+	CMakeLists = fs.readFileSync(`${__dirname}/templates/includeCMakeLists.txt`, "utf8").toString();
+	CMakeLists = CMakeLists.replace(/%INC%/g, "include");
+	CreateFile(`${ProjectPath}/include/CMakeLists.txt`, CMakeLists);
+
+	CMakeLists = fs.readFileSync(`${__dirname}/templates/srcCMakeLists.txt`, "utf8").toString();
+	CMakeLists = CMakeLists.replace(/%SRC%/g, (ProjectType == "App") ?
+	"src/main.cpp" : `src/${ProjectName}.cpp`);
+	CreateFile(`${ProjectPath}/src/CMakeLists.txt`, CMakeLists);
+
+	// Main files
+	if (ProjectType == "App")
+	{
+		var Main = fs.readFileSync(`${__dirname}/templates/main.cpp`, "utf8").toString();
+		CreateFile(`${ProjectPath}/src/main.cpp`, Main);
+	}
+	else
+		NewClass(ProjectPath, ProjectName);
+
+	// Open workspace in current window
+	let uri = vscode.Uri.file(`${ProjectPath}/${ProjectName}.code-workspace`);
 	vscode.window.showInformationMessage("C++ project created");
+	await vscode.commands.executeCommand('vscode.openFolder', uri);
 }
 
-async function NewClass()
+/**
+ * @summary Create new class, params are optional
+ * @param {string} Path Path of the project
+ * @param {string} Name Name of the class
+ */
+async function NewClass(Path, Name)
 {
+	var Code = "";
+	if (Path !== undefined && Path !== undefined)
+	{
+		Code = fs.readFileSync(`${__dirname}/templates/class.cpp`, "utf8");
+		CreateFile(`${Path}/src/${Name}.cpp`, Code.replace(/%NAME%/g, Name));
+		Code = fs.readFileSync(`${__dirname}/templates/class.h`, "utf8");
+		CreateFile(`${Path}/include/${Name}.h`, Code.replace(/%NAME%/g, Name));
+		return;
+	}
+
 	let WsFolderPath = GetRootPath()
-	let ProjectName = GetProjectName();
 
 	// Folder picker options
 	const OpenDialogOptions = {
@@ -142,7 +197,7 @@ async function NewClass()
 	// Get the full path of new class
 	// Use folder picker
 	let DirPath = "";
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath );
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath);
 
 	// Return if no folder is selected
 	if (DirPath === undefined || DirPath === "0") { return; }
@@ -188,7 +243,14 @@ async function NewClass()
 
 	if (ClassName === undefined) { return; }
 
-	console.log(ExecCmd("NewClass.sh", [WsFolderPath, DirPath, ClassName, DirName, ProjectName]));
+	Code = fs.readFileSync(`${__dirname}/templates/class.cpp`, "utf8");
+	CreateFile(`${DirPath}/${ClassName}.cpp`, Code.replace(/%NAME%/g, ClassName));
+	Code = fs.readFileSync(`${__dirname}/templates/class.h`, "utf8");
+	let IncPath = DirPath.replace("src", "include");
+	CreateFolder(IncPath);
+	CreateFile(`${IncPath}/${ClassName}.h`, Code.replace(/%NAME%/g, ClassName));
+
+	Configure();
 }
 
 async function RunExe()
@@ -205,19 +267,78 @@ async function RunExe()
 	terminal.sendText("cd \"" + WsFolderPath + "/build\"" + " && ./" + ProjectName);
 }
 
+/**
+ * @summary Get all files in a directory recursively
+ * @param {string} dir
+ * @returns {string[]} Array of file paths
+ */
+function GetFiles(dir)
+{
+	let Files = [];
+	const Items = fs.readdirSync(dir, { withFileTypes: true });
+
+	for (const item of Items)
+	{
+		if (item.isDirectory())
+			Files = [...Files, ...GetFiles(`${dir}/${item.name}`)];
+		else
+			Files.push(`${dir}/${item.name}`);
+	}
+
+	return Files;
+}
+
+/**
+ * @summary Add source and configure CMakeLists.txt
+ */
 async function Configure()
 {
-	let WsFolderPath = GetRootPath()
-	console.log(ExecCmd("Configure.sh", [WsFolderPath]));
+	let WsFolderPath = GetRootPath();
+	var CMakeLists = fs.readFileSync(`${__dirname}/templates/srcCMakeLists.txt`, "utf8").toString();
+	let src = GetFiles(`${WsFolderPath}/src`);
+	for (let i = 0; i < src.length; i++)
+	{
+		// Remove files not .c or .cpp
+		if (!src[i].endsWith(".c") && !src[i].endsWith(".cpp")) 
+		{
+			src.splice(i, 1); 
+			i--;  // Account removed element
+			continue;
+		}
+		// Remove prefix path
+		src[i] = src[i].replace(WsFolderPath + "/", "");
+	}
+	CMakeLists = CMakeLists.replace(/%SRC%/g, src.join("\r\n"));
+	fs.writeFileSync(`${WsFolderPath}/src/CmakeLists.txt`, CMakeLists);
+	
+	// Get all files in include folder recursively
+	// Remove the prefix path
+	// Remove file from path
+	// Add path to set include directories
+	CMakeLists = fs.readFileSync(`${__dirname}/templates/includeCMakeLists.txt`, "utf8").toString();
+	/** @type {any} */
+	let inc = GetFiles(`${WsFolderPath}/include`);
+	for (let i = 0; i < inc.length; i++)
+	{
+		inc[i] = inc[i].replace(WsFolderPath + "/", "");
+		inc[i] = inc[i].split("/")
+		inc[i].pop();
+		inc[i] = inc[i].join("/");
+	}
+
+	inc.unshift("include");
+	inc = [...new Set(inc)];
+	CMakeLists = CMakeLists.replace(/%INC%/g, inc.join("\r\n"));
+	fs.writeFileSync(`${WsFolderPath}/include/CmakeLists.txt`, CMakeLists);
 }
 
 /**
  * @summary Gets the absolute path of the workspace i.e the root path
  * @returns {string}
  */
-function GetRootPath()
+function GetRootPath() 
 {
-	try { return vscode.workspace.workspaceFolders[0].uri.path; }
+	try { return vscode.workspace.workspaceFolders[0].uri.fsPath; }
 	catch (error) { vscode.window.showErrorMessage("No project workspace is currently open"); }
 }
 
@@ -236,30 +357,17 @@ function GetProjectName()
 	return ProjectName;
 }
 
-/**
- * @summary Executes a command from bash file
- * @param {string} BashFile Name of Bash file to run
- * @param {string[]} BashParams List of params to run with bash file
- * @returns {string} string
- */
-function ExecCmd(BashFile, BashParams)
+function CreateFile(Path, Content)
 {
-	let BashCode = "sh";
-	if (os.platform().startsWith("linux") || os.platform().startsWith("win"))
-		BashCode = "bash"
+	fs.writeFileSync(Path, Content);
+}
 
-	let Cmd = "cd /; cd " + __dirname.replace(" ", "\\ ") + "; " + BashCode + " " + BashFile + " ";
-	BashParams.forEach(value =>
+function CreateFolder(Path)
+{
+	fs.mkdir(Path, { recursive: true }, (err) =>
 	{
-		Cmd += "\"" + value + "\" ";
+		if (err) { return "Error";; }
 	});
-
-	console.log(os.platform());
-	console.log(Cmd);
-
-	let Output;
-	exec(Cmd, (error, stdout) => Output = stdout);
-	return Output;
 }
 
 module.exports = {
