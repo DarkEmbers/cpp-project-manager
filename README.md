@@ -5,21 +5,17 @@ An extension that simplifies the proccess of creating and managing C++ projects,
 ## Features
 
 ### New Project
-
-<!-- ![](./images/NewProject.png) -->
 ![NewProject](https://user-images.githubusercontent.com/58950397/236218063-d64cc7c6-9c90-4101-907e-cc149edadd79.gif)
 
 ### New Class
-
-![](./images/NewClass.png)
+![NewClass](https://user-images.githubusercontent.com/58950397/236235360-1f4230a4-70f5-4b8d-8f3d-f9fe4121b089.gif)
 
 ### Configure
 Rescan and add "c"/"cpp" files with include directories to CMakeLists.txt. <br>
 Type "C++: Configure" in the command pallette.
 
 ### Run Exe
-
-![](./images/RunExe.png)
+Right click and select "C++: Run" to launch
 
 ## Requirements
 
