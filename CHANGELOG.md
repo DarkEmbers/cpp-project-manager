@@ -48,3 +48,8 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.0.10
 
 - Fix for Linux systems
+
+## 1.1.0
+
+- Fixed Windows support and cross compatibility
+- Changed Run to use CMakeTools

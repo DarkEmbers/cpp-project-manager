@@ -1,14 +1,6 @@
 const vscode = require("vscode");
-const exec = require("child_process").exec;
 const fs = require("fs");
-const os = require('os');
 const { execSync } = require("child_process"); 
-
-/**
- * @var terminal
- * @type {vscode.Terminal}
- */
-var terminal;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -17,14 +9,9 @@ function activate(context)
 {
 	// Bind commands to functions
 	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.NewProject", NewProject));
-	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.NewClass", NewClass));
+	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.NewClass", () => { NewClass(undefined, undefined); }));
 	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.RunExe", RunExe));
 	context.subscriptions.push(vscode.commands.registerCommand("cpp-project-manager.Configure", Configure));
-
-	vscode.window.onDidCloseTerminal((EventTerminal) =>
-	{
-		if (EventTerminal == terminal) { terminal = undefined; }
-	});
 
 	vscode.workspace.onDidOpenTextDocument(() => 
 	{
@@ -174,6 +161,7 @@ async function NewProject()
 async function NewClass(Path, Name)
 {
 	var Code = "";
+	console.log(Path, Name);
 	if (Path !== undefined && Path !== undefined)
 	{
 		Code = fs.readFileSync(`${__dirname}/templates/class.cpp`, "utf8");
@@ -255,16 +243,7 @@ async function NewClass(Path, Name)
 
 async function RunExe()
 {
-	if (!terminal) { terminal = vscode.window.createTerminal("Code"); } // Create new terminal if it doesn't exist
-
-	terminal.sendText("clear");
-	terminal.show(true);
-
-	let WsFolderPath = GetRootPath();
-	let ProjectName = GetProjectName();
-
-	// run exe
-	terminal.sendText("cd \"" + WsFolderPath + "/build\"" + " && ./" + ProjectName);
+	vscode.commands.executeCommand("cmake.launchTarget");
 }
 
 /**
@@ -343,31 +322,19 @@ function GetRootPath()
 }
 
 /**
- * @summary Returns Project Name
- * @returns {string} string
+ * @summary Aux function to create a file
  */
-function GetProjectName()
-{
-	let WsFolderPath = GetRootPath();
-	let ProjectName = "";
-
-	for (let i = (WsFolderPath.lastIndexOf("/") + 1); i < WsFolderPath.length; i++)
-		ProjectName += WsFolderPath[i];
-
-	return ProjectName;
-}
-
 function CreateFile(Path, Content)
 {
 	fs.writeFileSync(Path, Content);
 }
 
+/**
+ * @summary Aux function to create a folder
+ */
 function CreateFolder(Path)
 {
-	fs.mkdir(Path, { recursive: true }, (err) =>
-	{
-		if (err) { return "Error";; }
-	});
+	fs.mkdirSync(Path, { recursive: true });
 }
 
 module.exports = {
