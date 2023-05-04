@@ -6,7 +6,8 @@ An extension that simplifies the proccess of creating and managing C++ projects,
 
 ### New Project
 
-![](./images/NewProject.png)
+<!-- ![](./images/NewProject.png) -->
+![NewProject](https://user-images.githubusercontent.com/58950397/236218063-d64cc7c6-9c90-4101-907e-cc149edadd79.gif)
 
 ### New Class
 
