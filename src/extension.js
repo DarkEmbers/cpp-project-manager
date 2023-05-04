@@ -161,7 +161,6 @@ async function NewProject()
 async function NewClass(Path, Name)
 {
 	var Code = "";
-	console.log(Path, Name);
 	if (Path !== undefined && Path !== undefined)
 	{
 		Code = fs.readFileSync(`${__dirname}/templates/class.cpp`, "utf8");
@@ -237,7 +236,16 @@ async function NewClass(Path, Name)
 	let IncPath = DirPath.replace("src", "include");
 	CreateFolder(IncPath);
 	CreateFile(`${IncPath}/${ClassName}.h`, Code.replace(/%NAME%/g, ClassName));
+	/**
+	 * @type {vscode.TextDocumentShowOptions}
+	 */
+	let Options = {
+		preview: false,
+		preserveFocus: false
+	}
 
+	vscode.window.showTextDocument(vscode.Uri.file(`${IncPath}/${ClassName}.h`), Options);
+	vscode.window.showTextDocument(vscode.Uri.file(`${DirPath}/${ClassName}.cpp`), Options);
 	Configure();
 }
 
