@@ -58,7 +58,7 @@ async function NewProject()
 	let DirPath = "";
 	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => { if (fileUri) DirPath = fileUri[0].fsPath; });
 
-	if (DirPath === undefined || DirPath === "0") { return; }
+	if (!DirPath) { return; }
 
 	let ProjectName = await vscode.window.showInputBox({
 		placeHolder: "MyProject",

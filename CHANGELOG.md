@@ -60,3 +60,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 - Replaced subdirectory CMakeLists files with `cmake/sources.cmake` holding explicit `PROJECT_SOURCES` and `PROJECT_HEADERS`
 - Root `CMakeLists.txt` now uses `include(cmake/sources.cmake)` with a fixed `target_include_directories` instead of computed paths
 - Configure command now rewrites only `cmake/sources.cmake` instead of multiple files
+
+## 1.2.1
+
+- Fixed bug, don't ask project name when cancelling folder selection on create project
