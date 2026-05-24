@@ -5,13 +5,13 @@ An extension that simplifies the proccess of creating and managing C++ projects,
 ## Features
 
 ### New Project
-![NewProject](https://user-images.githubusercontent.com/58950397/236218063-d64cc7c6-9c90-4101-907e-cc149edadd79.gif)
+![NewProject](https://github.com/user-attachments/assets/755168bd-7d2f-43e7-8487-7c02b1f0786b)
 
 ### New Class
-![NewClass](https://user-images.githubusercontent.com/58950397/236235360-1f4230a4-70f5-4b8d-8f3d-f9fe4121b089.gif)
+![NewClass](https://github.com/user-attachments/assets/491eb29a-25ed-4ad9-8a28-1598b04de311)
 
 ### Configure
-Rescan and add "c"/"cpp" files with include directories to CMakeLists.txt. <br>
+Rescan all `c`/`cpp` source and header files and update `cmake/sources.cmake`. <br>
 Type "C++: Configure" in the command pallette.
 
 ### Run Exe
@@ -36,7 +36,9 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.1.0
+## 1.2.0
 
-- Fixed Windows support and cross compatibility
-- Changed Run to use CMakeTools
+- Refactored CMake project structure to modern approach
+- Replaced subdirectory CMakeLists files with `cmake/sources.cmake` holding explicit `PROJECT_SOURCES` and `PROJECT_HEADERS`
+- Root `CMakeLists.txt` now uses `include(cmake/sources.cmake)` with a fixed `target_include_directories` instead of computed paths
+- Configure command now rewrites only `cmake/sources.cmake` instead of multiple files
