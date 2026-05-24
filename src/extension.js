@@ -24,7 +24,6 @@ function activate(context)
 		else
 			vscode.commands.executeCommand("setContext", "cpp-proj.hasCMake", false);
 	});
-
 }
 
 // this method is called when your extension is deactivated
@@ -38,7 +37,6 @@ function deactivate()
  */
 async function NewProject()
 {
-	// QuickPick options
 	const QuickPickOptions = {
 		title: "Project Type",
 		ignoreFocusOut: true,
@@ -48,7 +46,6 @@ async function NewProject()
 	let ProjectType = await vscode.window.showQuickPick(["App", "Library"], QuickPickOptions);
 	if (ProjectType === undefined) { return; }
 
-	// Folder picker options
 	const OpenDialogOptions = {
 		canSelectMany: false,
 		openLabel: "Select Folder",
@@ -59,11 +56,10 @@ async function NewProject()
 	// Get the full path of new Project
 	// Use folder picker
 	let DirPath = "";
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath);
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => { if (fileUri) DirPath = fileUri[0].fsPath; });
 
-	if (DirPath === undefined || DirPath === "0") { return; } // Return if no folder is selected
+	if (DirPath === undefined || DirPath === "0") { return; }
 
-	// Take input
 	let ProjectName = await vscode.window.showInputBox({
 		placeHolder: "MyProject",
 		prompt: "Your new C++ project name",
@@ -79,7 +75,7 @@ async function NewProject()
 				return "Project name cannot have spaces";
 
 			if (text.match(/^[0-9A-Za-z-_]+$/) === null)
-				return "Special characters not allowed"
+				return "Special characters not allowed";
 
 			let FilenameOutput = undefined;
 			fs.readdirSync(DirPath).forEach(file =>
@@ -102,43 +98,42 @@ async function NewProject()
 	if (ProjectName === undefined) { return; }
 	var ProjectPath = DirPath + "/" + ProjectName;
 
-	// Create folders
 	CreateFolder(ProjectPath);
 	CreateFolder(`${ProjectPath}/build`);
 	CreateFolder(`${ProjectPath}/src`);
 	CreateFolder(`${ProjectPath}/include`);
 	CreateFolder(`${ProjectPath}/lib`);
+	CreateFolder(`${ProjectPath}/cmake`);
 
 	// Create files
 	var Workspace = fs.readFileSync(`${__dirname}/templates/project.code-workspace`, "utf8").toString();
 	CreateFile(`${ProjectPath}/${ProjectName}.code-workspace`, Workspace);
 
-	// Get Cmake version
 	var match = execSync("cmake --version").toString().match(/cmake version (\d+\.\d+\.\d+)/);
-	if (!match) 
+	if (!match)
 	{
 		vscode.window.showErrorMessage("CMake not found");
 		return;
 	}
+	
 	var version = match[1];
 	// Use template and fill details
 	var CMakeLists = fs.readFileSync(`${__dirname}/templates/rootCMakeLists.txt`, "utf8").toString();
 	CMakeLists = CMakeLists.replace(/%VER%/g, version);
 	CMakeLists = CMakeLists.replace(/%NAME%/g, ProjectName);
 	CMakeLists = CMakeLists.replace(/%TYPE%/g, (ProjectType == "App") ?
-	"add_executable(${PROJECT_NAME} ${SRC_FILES})" : "add_library(${PROJECT_NAME} STATIC ${SRC_FILES})");
+		"add_executable(${PROJECT_NAME}\n    ${PROJECT_SOURCES}\n    ${PROJECT_HEADERS}\n)" :
+		"add_library(${PROJECT_NAME} STATIC\n    ${PROJECT_SOURCES}\n    ${PROJECT_HEADERS}\n)");
 	CreateFile(`${ProjectPath}/CMakeLists.txt`, CMakeLists);
 
-	CMakeLists = fs.readFileSync(`${__dirname}/templates/includeCMakeLists.txt`, "utf8").toString();
-	CMakeLists = CMakeLists.replace(/%INC%/g, "include");
-	CreateFile(`${ProjectPath}/include/CMakeLists.txt`, CMakeLists);
+	var sourcesCmake = fs.readFileSync(`${__dirname}/templates/sources.cmake`, "utf8").toString();
+	let initSrc = (ProjectType == "App") ? "    src/main.cpp" : `    src/${ProjectName}.cpp`;
+	let initHdr = (ProjectType == "App") ? "" : `    include/${ProjectName}.h`;
+	sourcesCmake = sourcesCmake.replace(/%SRC%/g, initSrc);
+	sourcesCmake = sourcesCmake.replace(/%HDR%/g, initHdr);
+	CreateFile(`${ProjectPath}/cmake/sources.cmake`, sourcesCmake);
 
-	CMakeLists = fs.readFileSync(`${__dirname}/templates/srcCMakeLists.txt`, "utf8").toString();
-	CMakeLists = CMakeLists.replace(/%SRC%/g, (ProjectType == "App") ?
-	"src/main.cpp" : `src/${ProjectName}.cpp`);
-	CreateFile(`${ProjectPath}/src/CMakeLists.txt`, CMakeLists);
-
-	// Main files
+	
 	if (ProjectType == "App")
 	{
 		var Main = fs.readFileSync(`${__dirname}/templates/main.cpp`, "utf8").toString();
@@ -155,22 +150,22 @@ async function NewProject()
 
 /**
  * @summary Create new class, params are optional
- * @param {string} Path Path of the project
- * @param {string} Name Name of the class
+ * @param {string | undefined} Path Path of the project
+ * @param {string | undefined} Name Name of the class
  */
 async function NewClass(Path, Name)
 {
 	var Code = "";
-	if (Path !== undefined && Path !== undefined)
+	if (Path !== undefined && Name !== undefined)
 	{
 		Code = fs.readFileSync(`${__dirname}/templates/class.cpp`, "utf8");
-		CreateFile(`${Path}/src/${Name}.cpp`, Code.replace(/%NAME%/g, Name));
+		CreateFile(`${Path}/src/${Name}.cpp`, Code.replace(/%NAME%/g, Name).replace(/%INCPATH%/g, `${Name}.h`));
 		Code = fs.readFileSync(`${__dirname}/templates/class.h`, "utf8");
 		CreateFile(`${Path}/include/${Name}.h`, Code.replace(/%NAME%/g, Name));
 		return;
 	}
 
-	let WsFolderPath = GetRootPath()
+	let WsFolderPath = GetRootPath();
 
 	// Folder picker options
 	const OpenDialogOptions = {
@@ -184,14 +179,10 @@ async function NewClass(Path, Name)
 	// Get the full path of new class
 	// Use folder picker
 	let DirPath = "";
-	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => DirPath = fileUri[0].fsPath);
+	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => { if (fileUri) DirPath = fileUri[0].fsPath; });
 
 	// Return if no folder is selected
 	if (DirPath === undefined || DirPath === "0") { return; }
-
-	let DirName = DirPath.replace(WsFolderPath + "/src", "");
-	if (DirName == "") { DirName = "."; }
-	else { DirName = DirName.replace("/", ""); }
 
 	// Input new class name
 	let ClassName = await vscode.window.showInputBox({
@@ -209,7 +200,7 @@ async function NewClass(Path, Name)
 				return "Class name cannot have spaces";
 
 			if (text.match(/^[0-9A-Za-z-_]+$/) === null)
-				return "Special characters not allowed"
+				return "Special characters not allowed";
 
 			let FilenameOutput = undefined;
 			fs.readdirSync(DirPath).forEach(file =>
@@ -230,10 +221,14 @@ async function NewClass(Path, Name)
 
 	if (ClassName === undefined) { return; }
 
+	let srcRoot = WsFolderPath.replace(/\\/g, "/") + "/src";
+	let relDir = DirPath.replace(/\\/g, "/").replace(srcRoot, "").replace(/^\/+/, "");
+	let IncPath = `${WsFolderPath}/include${relDir ? "/" + relDir : ""}`;
+	let incRelPath = `${relDir ? relDir + "/" : ""}${ClassName}.h`;
+
 	Code = fs.readFileSync(`${__dirname}/templates/class.cpp`, "utf8");
-	CreateFile(`${DirPath}/${ClassName}.cpp`, Code.replace(/%NAME%/g, ClassName));
+	CreateFile(`${DirPath}/${ClassName}.cpp`, Code.replace(/%NAME%/g, ClassName).replace(/%INCPATH%/g, incRelPath));
 	Code = fs.readFileSync(`${__dirname}/templates/class.h`, "utf8");
-	let IncPath = DirPath.replace("src", "include");
 	CreateFolder(IncPath);
 	CreateFile(`${IncPath}/${ClassName}.h`, Code.replace(/%NAME%/g, ClassName));
 	/**
@@ -261,6 +256,7 @@ async function RunExe()
  */
 function GetFiles(dir)
 {
+	/** @type {string[]} */
 	let Files = [];
 	const Items = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -281,56 +277,34 @@ function GetFiles(dir)
 async function Configure()
 {
 	let WsFolderPath = GetRootPath();
-	var CMakeLists = fs.readFileSync(`${__dirname}/templates/srcCMakeLists.txt`, "utf8").toString();
-	let src = GetFiles(`${WsFolderPath}/src`);
-	for (let i = 0; i < src.length; i++)
-	{
-		// Remove files not .c or .cpp
-		if (!src[i].endsWith(".c") && !src[i].endsWith(".cpp")) 
-		{
-			src.splice(i, 1); 
-			i--;  // Account removed element
-			continue;
-		}
-		// Remove prefix path
-		src[i] = src[i].replace(WsFolderPath + "/", "");
-	}
-	CMakeLists = CMakeLists.replace(/%SRC%/g, src.join("\r\n"));
-	fs.writeFileSync(`${WsFolderPath}/src/CmakeLists.txt`, CMakeLists);
-	
-	// Get all files in include folder recursively
-	// Remove the prefix path
-	// Remove file from path
-	// Add path to set include directories
-	CMakeLists = fs.readFileSync(`${__dirname}/templates/includeCMakeLists.txt`, "utf8").toString();
-	/** @type {any} */
-	let inc = GetFiles(`${WsFolderPath}/include`);
-	for (let i = 0; i < inc.length; i++)
-	{
-		inc[i] = inc[i].replace(WsFolderPath + "/", "");
-		inc[i] = inc[i].split("/")
-		inc[i].pop();
-		inc[i] = inc[i].join("/");
-	}
 
-	inc.unshift("include");
-	inc = [...new Set(inc)];
-	CMakeLists = CMakeLists.replace(/%INC%/g, inc.join("\r\n"));
-	fs.writeFileSync(`${WsFolderPath}/include/CmakeLists.txt`, CMakeLists);
+	let src = GetFiles(`${WsFolderPath}/src`)
+		.filter(f => f.endsWith(".cpp") || f.endsWith(".c"))
+		.map(f => "    " + f.replace(WsFolderPath + "/", "").replace(/\\/g, "/"));
+
+	let hdr = GetFiles(`${WsFolderPath}/include`)
+		.filter(f => f.endsWith(".h") || f.endsWith(".hpp"))
+		.map(f => "    " + f.replace(WsFolderPath + "/", "").replace(/\\/g, "/"));
+
+	var sourcesCmake = fs.readFileSync(`${__dirname}/templates/sources.cmake`, "utf8").toString();
+	sourcesCmake = sourcesCmake.replace(/%SRC%/g, src.join("\n"));
+	sourcesCmake = sourcesCmake.replace(/%HDR%/g, hdr.join("\n"));
+	fs.writeFileSync(`${WsFolderPath}/cmake/sources.cmake`, sourcesCmake);
 }
 
 /**
  * @summary Gets the absolute path of the workspace i.e the root path
  * @returns {string}
  */
-function GetRootPath() 
+function GetRootPath()
 {
-	try { return vscode.workspace.workspaceFolders[0].uri.fsPath; }
-	catch (error) { vscode.window.showErrorMessage("No project workspace is currently open"); }
+	try { return vscode.workspace.workspaceFolders?.[0].uri.fsPath ?? ""; }
+	catch (e) { vscode.window.showErrorMessage("No project workspace is currently open"); return ""; }
 }
 
 /**
- * @summary Aux function to create a file
+ * @param {string} Path
+ * @param {string} Content
  */
 function CreateFile(Path, Content)
 {
@@ -338,7 +312,7 @@ function CreateFile(Path, Content)
 }
 
 /**
- * @summary Aux function to create a folder
+ * @param {string} Path
  */
 function CreateFolder(Path)
 {

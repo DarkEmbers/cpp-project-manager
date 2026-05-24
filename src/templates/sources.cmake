@@ -1,0 +1,7 @@
+set(PROJECT_SOURCES
+%SRC%
+)
+
+set(PROJECT_HEADERS
+%HDR%
+)

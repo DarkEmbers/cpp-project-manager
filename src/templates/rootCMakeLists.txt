@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION %VER%)
 
-PROJECT(%NAME%)
+project(%NAME%)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE "Debug")
 
-add_subdirectory(src)
-add_subdirectory(include)
+include(cmake/sources.cmake)
+
 %TYPE%
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${INC_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE
+    include
+)
