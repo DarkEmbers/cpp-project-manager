@@ -181,8 +181,8 @@ async function NewClass(Path, Name)
 	let DirPath = "";
 	await vscode.window.showOpenDialog(OpenDialogOptions).then(fileUri => { if (fileUri) DirPath = fileUri[0].fsPath; });
 
-	// Return if no folder is selected
-	if (DirPath === undefined || DirPath === "0") { return; }
+	// Return if no folder is selected\
+	if (!DirPath) { return; }
 
 	// Input new class name
 	let ClassName = await vscode.window.showInputBox({
