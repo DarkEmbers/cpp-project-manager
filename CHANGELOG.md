@@ -64,3 +64,7 @@ All notable changes to the "cpp-project-manager" extension will be documented in
 ## 1.2.1
 
 - Fixed bug, don't ask project name when cancelling folder selection on create project
+
+## 1.2.2
+
+- Fixed bug, don't ask class name when cancelling folder selection on create class

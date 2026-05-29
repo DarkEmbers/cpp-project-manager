@@ -36,7 +36,6 @@ Please report your issues at: [C++ Project Manager Github Page](https://github.c
 
 ## Release Notes
 
-## 1.2.1
+## 1.2.2
 
-- Fixed bug, don't ask project name when cancelling folder selection on create project
-
+- Fixed bug, don't ask class name when cancelling folder selection on create class
